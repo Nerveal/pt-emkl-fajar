@@ -69,8 +69,8 @@ export default function LaporanPage() {
         doc.text("Laporan Pengiriman Barang - PT EMKL FAJAR", 14, 15);
 
         autoTable(doc, {
-            head: [['No. Kontainer', 'Nama Barang', 'Tujuan', 'Status', 'Tanggal']],
-            body: data.map(item => [item.nomorKontainer, item.namaBarang, item.tujuan, item.status, formatDate(item.tanggalPengiriman)]),
+            head: [['No. Kontainer', 'Nama Barang', 'Tujuan', 'Penerima', 'Tanggal']],
+            body: data.map(item => [item.nomorKontainer, item.namaBarang, item.tujuan, item.penerima, formatDate(item.tanggalPengiriman)]),
             startY: 20,
         });
 
@@ -102,13 +102,13 @@ export default function LaporanPage() {
                     new Table({
                         rows: [
                             new TableRow({
-                                children: ["No. Kontainer", "Nama Barang", "Tujuan", "Status", "Tanggal"].map(text =>
+                                children: ["No. Kontainer", "Nama Barang", "Tujuan", "Penerima", "Tanggal"].map(text =>
                                     new TableCell({ children: [new Paragraph(text)] })
                                 )
                             }),
                             ...data.map(item =>
                                 new TableRow({
-                                    children: [item.nomorKontainer, item.namaBarang, item.tujuan, item.status, formatDate(item.tanggalPengiriman)].map(text =>
+                                    children: [item.nomorKontainer, item.namaBarang, item.tujuan, item.penerima, formatDate(item.tanggalPengiriman)].map(text =>
                                         new TableCell({ children: [new Paragraph(text)] })
                                     )
                                 })

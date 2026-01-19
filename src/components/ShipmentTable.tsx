@@ -122,7 +122,7 @@ export default function ShipmentTable() {
                         <tr className="bg-white/5 border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-semibold">
                             <th className="px-6 py-4">No. Kontainer</th>
                             <th className="px-6 py-4">Nama Barang</th>
-                            <th className="px-6 py-4">Penerima</th>
+                            <th className="px-6 py-4">Tujuan</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Tanggal Kirim</th>
                         </tr>
@@ -154,8 +154,8 @@ export default function ShipmentTable() {
                                     </td>
                                     <td className="px-6 py-4 text-slate-300">
                                         <div className="flex flex-col">
-                                            <span>{shipment.penerima}</span>
-                                            <span className="text-xs text-slate-500">{shipment.tujuan}</span>
+                                            <span>{shipment.tujuan}</span>
+                                            <span className="text-xs text-slate-500">{shipment.penerima}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">{getStatusBadge(shipment.status)}</td>
