@@ -129,8 +129,9 @@ export default function ShipmentTable() {
                                     <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
                                     <span className="font-mono text-accent font-medium text-lg">{shipment.nomorKontainer}</span>
                                 </div>
-                                <div className="scale-90 origin-top-right">
-                                    {getStatusBadge(shipment.status)}
+                                <div className="flex flex-col items-end">
+                                    <span className="text-xs text-slate-400 uppercase tracking-wide">Penerima</span>
+                                    <span className="text-white font-medium text-right">{shipment.penerima}</span>
                                 </div>
                             </div>
 
@@ -143,7 +144,6 @@ export default function ShipmentTable() {
                                 <div>
                                     <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
                                     <span className="text-white font-medium block">{shipment.tujuan}</span>
-                                    <span className="text-xs text-slate-500">{shipment.penerima}</span>
                                 </div>
                             </div>
 
@@ -164,7 +164,7 @@ export default function ShipmentTable() {
                             <th className="px-6 py-4">No. Kontainer</th>
                             <th className="px-6 py-4">Nama Barang</th>
                             <th className="px-6 py-4">Tujuan</th>
-                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4">Penerima</th>
                             <th className="px-6 py-4">Tanggal Kirim</th>
                         </tr>
                     </thead>
@@ -194,12 +194,11 @@ export default function ShipmentTable() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-slate-300">
-                                        <div className="flex flex-col">
-                                            <span>{shipment.tujuan}</span>
-                                            <span className="text-xs text-slate-500">{shipment.penerima}</span>
-                                        </div>
+                                        <span>{shipment.tujuan}</span>
                                     </td>
-                                    <td className="px-6 py-4">{getStatusBadge(shipment.status)}</td>
+                                    <td className="px-6 py-4 text-white font-medium">
+                                        {shipment.penerima}
+                                    </td>
                                     <td className="px-6 py-4 text-slate-400">{formatDate(shipment.tanggalPengiriman)}</td>
                                 </tr>
                             ))
