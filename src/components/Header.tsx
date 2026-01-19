@@ -1,12 +1,27 @@
-export default function Header() {
+interface HeaderProps {
+    onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
     return (
-        <header className="flex items-center justify-between px-8 py-6 sticky top-0 z-20 bg-[#121416]/80 backdrop-blur-md border-b border-glass-border">
-            <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-white tracking-tight">
-                    Dashboard Overview
-                </h2>
-                <p className="text-sm text-slate-400">Jumat, 24 November 2023</p>
+        <header className="flex items-center justify-between px-4 lg:px-8 py-4 lg:py-6 sticky top-0 z-20 bg-[#121416]/80 backdrop-blur-md border-b border-glass-border">
+            <div className="flex items-center gap-4">
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 lg:hidden"
+                >
+                    <span className="material-symbols-outlined">menu</span>
+                </button>
+
+                <div className="flex flex-col">
+                    <h2 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
+                        Dashboard Overview
+                    </h2>
+                    <p className="text-xs lg:text-sm text-slate-400">Jumat, 24 November 2023</p>
+                </div>
             </div>
+
             <div className="flex items-center gap-4">
                 <button className="flex items-center justify-center size-10 rounded-full bg-surface-dark border border-glass-border text-slate-400 hover:text-white hover:bg-white/5 transition-all relative">
                     <span
