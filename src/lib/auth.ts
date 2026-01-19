@@ -1,55 +1,76 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { cookies } from 'next/headers';
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+export const { handlers, auth, signIn, signOut } = NextAuth({
+    adapter: PrismaAdapter(prisma),
+    session: { strategy: "jwt" },
+    pages: { signIn: "/login" },
+    providers: [
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        }),
+        Credentials({
+            name: "Credentials",
+            credentials: {
+                username: { label: "Username", type: "text" },
+                password: { label: "Password", type: "password" },
+            },
+            authorize: async (credentials) => {
+                if (!credentials?.username || !credentials?.password) {
+                    return null;
+                }
 
-export interface JWTPayload {
-    userId: string;
-    username: string;
-    role: string;
-}
+                const user = await prisma.user.findUnique({
+                    where: { username: credentials.username as string },
+                });
 
-export async function hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
-}
+                if (!user || !user.password) {
+                    return null;
+                }
 
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(password, hashedPassword);
-}
+                const isPasswordValid = await bcrypt.compare(
+                    credentials.password as string,
+                    user.password
+                );
 
-export function generateToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
-}
+                if (!isPasswordValid) {
+                    return null;
+                }
 
-export function verifyToken(token: string): JWTPayload | null {
-    try {
-        return jwt.verify(token, JWT_SECRET) as JWTPayload;
-    } catch {
-        return null;
-    }
-}
-
-export async function getSession(): Promise<JWTPayload | null> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-
-    if (!token) return null;
-    return verifyToken(token);
-}
-
-export async function setAuthCookie(token: string) {
-    const cookieStore = await cookies();
-    cookieStore.set('auth_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: '/',
-    });
-}
-
-export async function clearAuthCookie() {
-    const cookieStore = await cookies();
-    cookieStore.delete('auth_token');
-}
+                return {
+                    id: user.id,
+                    name: user.name,
+                    username: user.username,
+                    role: user.role,
+                };
+            },
+        }),
+    ],
+    callbacks: {
+        async session({ session, token }) {
+            if (token && session.user) {
+                session.user.id = token.sub as string;
+                // @ts-ignore
+                session.user.username = token.username as string;
+                // @ts-ignore
+                session.user.role = token.role as string;
+            }
+            return session;
+        },
+        async jwt({ token, user, trigger, session }) {
+            if (user) {
+                token.id = user.id;
+                // @ts-ignore
+                token.username = user.username;
+                // @ts-ignore
+                token.role = user.role;
+            }
+            return token;
+        },
+    },
+});

@@ -3,7 +3,7 @@
 import React from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { useAuth } from "@/context/AuthContext";
+import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function DashboardLayout({
@@ -11,21 +11,22 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, isLoading } = useAuth();
+    const { data: session, status } = useSession();
+    const isLoading = status === "loading";
     const router = useRouter();
     const pathname = usePathname();
 
     React.useEffect(() => {
-        if (!isLoading && !user && pathname !== '/login') {
+        if (!isLoading && !session && pathname !== '/login') {
             router.push('/login');
         }
-    }, [user, isLoading, router, pathname]);
+    }, [session, isLoading, router, pathname]);
 
     if (isLoading) {
         return <div className="min-h-screen bg-background-dark flex items-center justify-center text-white">Loading...</div>;
     }
 
-    if (!user) {
+    if (!session) {
         return null;
     }
 

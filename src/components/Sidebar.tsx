@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { data: session } = useSession();
+    const user = session?.user;
 
     // Helper to check if link is active
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path + "/");
@@ -39,8 +40,8 @@ export default function Sidebar() {
                     <Link
                         href="/dashboard"
                         className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${isActive("/dashboard")
-                                ? "bg-primary/20 border border-primary/30 text-white"
-                                : "text-slate-400 hover:bg-white/5 hover:text-white"
+                            ? "bg-primary/20 border border-primary/30 text-white"
+                            : "text-slate-400 hover:bg-white/5 hover:text-white"
                             }`}
                     >
                         <span
@@ -54,8 +55,8 @@ export default function Sidebar() {
                     <Link
                         href="/pengiriman"
                         className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${isActive("/pengiriman")
-                                ? "bg-primary/20 border border-primary/30 text-white"
-                                : "text-slate-400 hover:bg-white/5 hover:text-white"
+                            ? "bg-primary/20 border border-primary/30 text-white"
+                            : "text-slate-400 hover:bg-white/5 hover:text-white"
                             }`}
                     >
                         <span
@@ -69,8 +70,8 @@ export default function Sidebar() {
                     <Link
                         href="/laporan"
                         className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${isActive("/laporan")
-                                ? "bg-primary/20 border border-primary/30 text-white"
-                                : "text-slate-400 hover:bg-white/5 hover:text-white"
+                            ? "bg-primary/20 border border-primary/30 text-white"
+                            : "text-slate-400 hover:bg-white/5 hover:text-white"
                             }`}
                     >
                         <span
@@ -89,8 +90,8 @@ export default function Sidebar() {
                         <div
                             className="size-10 rounded-full bg-cover bg-center ring-2 ring-white/10"
                             style={{
-                                backgroundImage: user?.avatar
-                                    ? `url("${user.avatar}")`
+                                backgroundImage: user?.image
+                                    ? `url("${user.image}")`
                                     : 'url("https://ui-avatars.com/api/?name=Admin+Logistics&background=0ea5e9&color=fff")',
                             }}
                         ></div>
@@ -101,7 +102,7 @@ export default function Sidebar() {
                             <p className="truncate text-xs text-slate-400">{user?.role || "Gudang"}</p>
                         </div>
                         <button
-                            onClick={logout}
+                            onClick={() => signOut({ callbackUrl: "/login" })}
                             className="material-symbols-outlined ml-auto text-slate-500 hover:text-red-400 transition-colors"
                             style={{ fontSize: "20px" }}
                             title="Logout"

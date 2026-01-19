@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -9,7 +9,6 @@ export default function LoginPage() {
     const [password, setPassword] = useState("admin123");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { login } = useAuth();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -17,14 +16,28 @@ export default function LoginPage() {
         setError("");
         setIsSubmitting(true);
 
-        const success = await login(username, password);
+        try {
+            const result = await signIn("credentials", {
+                username,
+                password,
+                redirect: false,
+            });
 
-        if (success) {
-            router.push("/dashboard");
-        } else {
-            setError("Username atau password salah");
+            if (result?.error) {
+                setError("Username atau password salah");
+                setIsSubmitting(false);
+            } else {
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            setError("Terjadi kesalahan saat login");
             setIsSubmitting(false);
         }
+    };
+
+    const handleGoogleLogin = async () => {
+        setIsSubmitting(true);
+        await signIn("google", { callbackUrl: "/dashboard" });
     };
 
     return (
@@ -47,53 +60,78 @@ export default function LoginPage() {
                     <p className="text-slate-400 text-sm tracking-wider">INDONESIA TIMUR</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl text-center">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Username</label>
-                        <div className="relative">
-                            <span className="material-symbols-outlined absolute left-3 top-3 text-slate-500 text-sm">person</span>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                                placeholder="Masukkan username"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Password</label>
-                        <div className="relative">
-                            <span className="material-symbols-outlined absolute left-3 top-3 text-slate-500 text-sm">lock</span>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                                placeholder="Masukkan password"
-                            />
-                        </div>
-                    </div>
-
+                <div className="space-y-6">
+                    {/* Google Login Button */}
                     <button
-                        type="submit"
-                        className={`w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        onClick={handleGoogleLogin}
                         disabled={isSubmitting}
+                        className="w-full bg-white text-slate-900 font-bold py-3 rounded-xl shadow-lg hover:bg-slate-100 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                     >
-                        {isSubmitting ? 'Loading...' : 'Sign In'}
+                        <img
+                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            alt="Google"
+                            className="w-5 h-5"
+                        />
+                        Sign in with Google
                     </button>
 
-                    <div className="text-center text-xs text-slate-500 mt-4">
-                        <p>Demo Credentials: admin / admin123</p>
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-white/10"></span>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-[#0f172a] px-2 text-slate-500">Or continue with</span>
+                        </div>
                     </div>
-                </form>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl text-center">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Username</label>
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-3 top-3 text-slate-500 text-sm">person</span>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                                    placeholder="Masukkan username"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Password</label>
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-3 top-3 text-slate-500 text-sm">lock</span>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                                    placeholder="Masukkan password"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={`w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Loading...' : 'Sign In with Credentials'}
+                        </button>
+
+                        <div className="text-center text-xs text-slate-500 mt-4">
+                            <p>Demo Credentials: admin / admin123</p>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
