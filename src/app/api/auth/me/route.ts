@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const session = await getSession();
+        const session = await auth();
 
-        if (!session) {
+        if (!session || !session.user) {
             return NextResponse.json(
                 { error: 'Tidak terautentikasi' },
                 { status: 401 }
@@ -14,7 +14,7 @@ export async function GET() {
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: session.userId },
+            where: { id: session.user.id },
             select: {
                 id: true,
                 username: true,
