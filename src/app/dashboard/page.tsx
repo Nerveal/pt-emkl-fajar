@@ -1,8 +1,15 @@
+"use client";
+
 import StatsGrid from "@/components/StatsGrid";
 import ShipmentTable from "@/components/ShipmentTable";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useSession } from "next-auth/react";
+import React from "react";
 
 export default function DashboardPage() {
+    const { data: session } = useSession();
+    const user = session?.user;
+
     return (
         <DashboardLayout>
             <div className="flex flex-col gap-8">
@@ -22,7 +29,7 @@ export default function DashboardPage() {
                                 <span className="animate-pulse">●</span> Live Updates
                             </div>
                             <h3 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
-                                Selamat Datang, Admin.
+                                Selamat Datang, {user?.name?.split(" ")[0] || "Admin"}.
                             </h3>
                             <p className="text-slate-300 text-sm md:text-lg">
                                 Pantau seluruh armada logistik dan status pengiriman PT EMKL
