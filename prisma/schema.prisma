@@ -1,0 +1,37 @@
+// Prisma Schema for PT EMKL FAJAR
+// Database: PostgreSQL (Prisma 7+ compatible)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  username  String     @unique
+  password  String
+  name      String
+  role      String     @default("Operator") // Admin | Operator
+  createdAt DateTime   @default(now())
+  shipments Shipment[]
+}
+
+model Shipment {
+  id                String   @id @default(cuid())
+  namaBarang        String
+  jumlah            Int
+  satuan            String
+  tujuan            String   // Merauke | Sorong
+  penerima          String
+  pelayaran         String   // Spill | Tanto
+  nomorKontainer    String
+  tanggalPengiriman DateTime
+  status            String   @default("Active") // Active | Completed | Pending
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+}

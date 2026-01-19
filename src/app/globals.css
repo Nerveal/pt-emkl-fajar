@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #1f3b61;
+  --color-primary-hover: #2a4d7d;
+  --color-accent: #0ea5e9;
+  --color-background-dark: #121416;
+  --color-surface-dark: #1a1d21;
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-bg: rgba(30, 35, 41, 0.7);
+
+  --image-glow-gradient: radial-gradient(circle at 50% 0%, rgba(31, 59, 97, 0.4) 0%, rgba(18, 20, 22, 0) 70%);
+  --image-card-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.0) 100%);
+
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121416;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c3035;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3e444b;
+}
+
+/* Glassmorphism Utilities */
+@utility glass-panel {
+  background-color: rgba(30, 35, 41, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+@utility glass-input {
+  background-color: rgba(20, 22, 25, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+
+  &:focus-within {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+  }
+}
+
+body {
+  background: var(--color-background-dark);
+  color: white;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
