@@ -115,8 +115,49 @@ export default function ShipmentTable() {
                 </div>
             </div>
 
-            {/* Data Table */}
-            <div className="overflow-x-auto rounded-xl border border-white/5">
+            {/* Mobile Card View (Visible on small screens) */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {isLoading ? (
+                    <div className="text-center text-slate-400 py-8">Memuat data...</div>
+                ) : filteredShipments.length === 0 ? (
+                    <div className="text-center text-slate-400 py-8">Belum ada data pengiriman</div>
+                ) : (
+                    filteredShipments.map((shipment) => (
+                        <div key={shipment.id} className="relative glass-panel p-4 rounded-xl border border-white/5 space-y-3 group hover:bg-white/[0.03] transition-all">
+                            <div className="flex justify-between items-start">
+                                <div className="flex flex-col">
+                                    <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
+                                    <span className="font-mono text-accent font-medium text-lg">{shipment.nomorKontainer}</span>
+                                </div>
+                                <div className="scale-90 origin-top-right">
+                                    {getStatusBadge(shipment.status)}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                                <div>
+                                    <span className="text-xs text-slate-400 block mb-1">Barang</span>
+                                    <span className="text-white font-medium block">{shipment.namaBarang}</span>
+                                    <span className="text-xs text-slate-500">{shipment.jumlah} {shipment.satuan}</span>
+                                </div>
+                                <div>
+                                    <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
+                                    <span className="text-white font-medium block">{shipment.tujuan}</span>
+                                    <span className="text-xs text-slate-500">{shipment.penerima}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <span className="text-xs text-slate-500">{formatDate(shipment.tanggalPengiriman)}</span>
+                                <span className="material-symbols-outlined text-slate-600">chevron_right</span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop Table View (Hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-white/5 border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-semibold">

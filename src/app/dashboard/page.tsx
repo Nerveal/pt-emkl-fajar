@@ -7,7 +7,7 @@ export default function DashboardPage() {
         <DashboardLayout>
             <div className="flex flex-col gap-8">
                 {/* Hero / Welcome Section */}
-                <section className="relative overflow-hidden rounded-2xl glass-panel p-8">
+                <section className="relative overflow-hidden rounded-2xl glass-panel p-6 md:p-8">
                     <div
                         className="absolute inset-0 z-0 opacity-20 bg-center bg-cover mix-blend-overlay"
                         style={{
@@ -21,16 +21,16 @@ export default function DashboardPage() {
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-wider mb-2">
                                 <span className="animate-pulse">●</span> Live Updates
                             </div>
-                            <h3 className="text-3xl font-extrabold text-white leading-tight">
+                            <h3 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
                                 Selamat Datang, Admin.
                             </h3>
-                            <p className="text-slate-300 text-lg">
+                            <p className="text-slate-300 text-sm md:text-lg">
                                 Pantau seluruh armada logistik dan status pengiriman PT EMKL
                                 Fajar secara real-time.
                             </p>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="flex flex-col items-end gap-1 text-right px-4 border-r border-white/10">
+                        <div className="flex gap-4 w-full md:w-auto">
+                            <div className="flex flex-col items-start md:items-end gap-1 text-left md:text-right px-4 border-r border-white/10 flex-1 md:flex-none">
                                 <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
                                     Cuaca Surabaya
                                 </span>
@@ -41,7 +41,7 @@ export default function DashboardPage() {
                                     <span className="font-bold">32°C</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1 text-right px-4">
+                            <div className="flex flex-col items-start md:items-end gap-1 text-left md:text-right px-4 flex-1 md:flex-none">
                                 <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
                                     Pelabuhan
                                 </span>

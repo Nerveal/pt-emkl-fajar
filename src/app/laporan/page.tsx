@@ -177,8 +177,48 @@ export default function LaporanPage() {
                         </Button>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto rounded-xl border border-white/5">
+                    {/* Mobile Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {isLoading ? (
+                            <div className="text-center text-slate-400 py-8">Memuat data...</div>
+                        ) : data.length === 0 ? (
+                            <div className="text-center text-slate-400 py-8">Belum ada data pengiriman</div>
+                        ) : (
+                            data.map((item) => (
+                                <div key={item.id} className="glass-panel p-4 rounded-xl border border-white/5 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
+                                            <span className="font-mono text-accent font-medium text-lg">{item.nomorKontainer}</span>
+                                        </div>
+                                        <div className="scale-90 origin-top-right">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}>
+                                                {item.status === 'Completed' ? 'Selesai' : item.status === 'Active' ? 'In Transit' : item.status}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                                        <div>
+                                            <span className="text-xs text-slate-400 block mb-1">Barang</span>
+                                            <span className="text-white font-medium block">{item.namaBarang}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
+                                            <span className="text-white font-medium block">{item.tujuan}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
+                                        <span>{formatDate(item.tanggalPengiriman)}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-white/5 border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-semibold">
