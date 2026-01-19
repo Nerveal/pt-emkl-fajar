@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { shipmentSchema } from '@/lib/validation';
 
 // GET /api/shipments - List all shipments with optional filters
 export async function GET(request: NextRequest) {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 
@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
 // POST /api/shipments - Create new shipment
 export async function POST(request: NextRequest) {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
                 pelayaran: data.pelayaran,
                 nomorKontainer: data.nomorKontainer,
                 tanggalPengiriman: new Date(data.tanggalPengiriman),
-                userId: session.userId,
+                userId: session.user.id,
             },
         });
 

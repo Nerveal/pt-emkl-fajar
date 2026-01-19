@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 

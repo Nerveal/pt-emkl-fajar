@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { shipmentUpdateSchema } from '@/lib/validation';
 
 interface Params {
@@ -10,8 +10,8 @@ interface Params {
 // GET /api/shipments/[id] - Get single shipment
 export async function GET(request: NextRequest, { params }: Params) {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PUT /api/shipments/[id] - Update shipment
 export async function PUT(request: NextRequest, { params }: Params) {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 
@@ -83,13 +83,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
 // DELETE /api/shipments/[id] - Delete shipment
 export async function DELETE(request: NextRequest, { params }: Params) {
     try {
-        const session = await getSession();
-        if (!session) {
+        const session = await auth();
+        if (!session || !session.user) {
             return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
         }
 
         // Only Admin can delete
-        if (session.role !== 'Admin') {
+        if (session.user.role !== 'Admin') {
             return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 });
         }
 
