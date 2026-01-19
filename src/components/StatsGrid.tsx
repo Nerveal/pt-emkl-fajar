@@ -34,72 +34,51 @@ export default function StatsGrid() {
     const totalForProgress = stats?.totalShipments || 1;
 
     return (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Stat 1 - Today's Shipments */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between group hover:border-accent/30 transition-all duration-300">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 rounded-lg bg-primary/20 text-accent">
-                        <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
+        <section className="grid grid-cols-1">
+            {/* Total Shipments - Full Width Aesthetic Card */}
+            <div className="relative overflow-hidden glass-panel p-6 md:p-8 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-accent/30 transition-all duration-300">
+
+                {/* Decorative Background Gradient */}
+                <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all duration-500 pointer-events-none"></div>
+                <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl group-hover:bg-accent/20 transition-all duration-500 pointer-events-none"></div>
+
+                {/* Content */}
+                <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20 text-accent shadow-lg shadow-primary/5 group-hover:scale-110 transition-transform duration-300">
+                        <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>
                             local_shipping
                         </span>
                     </div>
+                    <div className="flex flex-col">
+                        <p className="text-slate-400 text-sm md:text-base font-medium tracking-wide uppercase">
+                            Total Pengiriman
+                        </p>
+                        <h4 className="text-4xl md:text-5xl font-black text-white tracking-tight mt-1">
+                            {isLoading ? (
+                                <span className="animate-pulse">...</span>
+                            ) : (
+                                stats?.totalShipments ?? 0
+                            )}
+                            <span className="text-lg md:text-2xl text-slate-500 font-bold ml-2">Unit</span>
+                        </h4>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-slate-400 text-sm font-medium mb-1">
-                        Total Pengiriman Hari Ini
-                    </p>
-                    <h4 className="text-4xl font-black text-white tracking-tight">
-                        {isLoading ? "..." : stats?.todayShipments ?? 0}
-                    </h4>
-                </div>
-            </div>
 
-            {/* Stat 2 - Active/In Transit */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between group hover:border-accent/30 transition-all duration-300">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-500">
-                        <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
-                            pending_actions
-                        </span>
+                {/* Mini Chart / Visual Indicator (Mockup for aesthetics) */}
+                <div className="relative z-10 flex items-center gap-8 w-full md:w-auto border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400">Pencapaian</span>
+                        <div className="flex items-end gap-2 text-emerald-400">
+                            <span className="material-symbols-outlined icon-sm">trending_up</span>
+                            <span className="font-bold text-sm">+12.5%</span>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <p className="text-slate-400 text-sm font-medium mb-1">
-                        Sedang Diproses (In Transit)
-                    </p>
-                    <h4 className="text-4xl font-black text-white tracking-tight">
-                        {isLoading ? "..." : stats?.activeShipments ?? 0}
-                    </h4>
-                    <div className="w-full bg-white/10 rounded-full h-1 mt-3 overflow-hidden">
-                        <div
-                            className="bg-yellow-500 h-1 rounded-full transition-all duration-500"
-                            style={{ width: `${((stats?.activeShipments ?? 0) / totalForProgress) * 100}%` }}
-                        ></div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Stat 3 - Completed */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between group hover:border-accent/30 transition-all duration-300">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-500">
-                        <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
-                            check_circle
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-slate-400 text-sm font-medium mb-1">
-                        Pengiriman Selesai
-                    </p>
-                    <h4 className="text-4xl font-black text-white tracking-tight">
-                        {isLoading ? "..." : stats?.completedShipments ?? 0}
-                    </h4>
-                    <div className="w-full bg-white/10 rounded-full h-1 mt-3 overflow-hidden">
-                        <div
-                            className="bg-emerald-500 h-1 rounded-full transition-all duration-500"
-                            style={{ width: `${((stats?.completedShipments ?? 0) / totalForProgress) * 100}%` }}
-                        ></div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400">Status</span>
+                        <div className="flex items-center gap-2 text-accent">
+                            <span className="size-2 rounded-full bg-accent animate-pulse"></span>
+                            <span className="font-bold text-sm">Active</span>
+                        </div>
                     </div>
                 </div>
             </div>
