@@ -21,6 +21,8 @@ interface Shipment {
     nomorKontainer: string;
     tanggalPengiriman: string;
     status: string;
+    ukuran?: string;
+    hargaSatuan?: number;
 }
 
 export default function LaporanPage() {
@@ -66,15 +68,109 @@ export default function LaporanPage() {
 
     const handleExportPDF = () => {
         const doc = new jsPDF();
-        doc.text("Laporan Pengiriman Barang - PT EMKL FAJAR", 14, 15);
 
-        autoTable(doc, {
-            head: [['No. Kontainer', 'Nama Barang', 'Tujuan', 'Penerima', 'Tanggal']],
-            body: data.map(item => [item.nomorKontainer, item.namaBarang, item.tujuan, item.penerima, formatDate(item.tanggalPengiriman)]),
-            startY: 20,
+        // Group data by Container Number
+        const groupedData: { [key: string]: Shipment[] } = {};
+        data.forEach(item => {
+            if (!groupedData[item.nomorKontainer]) {
+                groupedData[item.nomorKontainer] = [];
+            }
+            groupedData[item.nomorKontainer].push(item);
         });
 
-        doc.save('laporan-pengiriman.pdf');
+        const containers = Object.keys(groupedData);
+
+        containers.forEach((containerNum, index) => {
+            if (index > 0) {
+                doc.addPage();
+            }
+
+            const shipments = groupedData[containerNum];
+            const firstItem = shipments[0]; // Use first item for shared metadata
+
+            // --- HEADER ---
+            doc.setFontSize(16);
+            doc.setTextColor(41, 128, 185); // Blue color for title
+            doc.text("PACKING LIST", 195, 20, { align: "right" });
+
+            // --- METADATA BLOCK ---
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0); // Black text
+
+            const startY = 30;
+            const lineHeight = 6;
+            const labelX = 14;
+            const valueX = 60;
+
+            // Helper to draw label-value pair
+            const drawField = (label: string, value: string, y: number) => {
+                doc.setFont("helvetica", "bold");
+                doc.text(label, labelX, y);
+                doc.setFont("helvetica", "normal");
+                doc.text(value, valueX, y);
+            };
+
+            drawField("PENGIRIM:", "PT. EMKL FAJAR INDONESIA TIMUR", startY);
+            drawField("PENERIMA:", firstItem.penerima, startY + lineHeight);
+            drawField("KAPAL / TUJUAN:", `${firstItem.pelayaran} / ${firstItem.tujuan}`, startY + lineHeight * 2);
+            drawField("MERK:", "FNB", startY + lineHeight * 3); // Hardcoded based on image/request or "-"
+            drawField("RENCANA KIRIM:", formatDate(firstItem.tanggalPengiriman), startY + lineHeight * 4);
+            drawField("KONTAINER:", containerNum, startY + lineHeight * 5);
+
+            // --- TABLE ---
+            const tableBody = shipments.map((item, idx) => [
+                idx + 1,
+                `${item.jumlah} ${item.satuan}`,
+                item.namaBarang,
+                item.ukuran || "-", // Ukuran from DB
+                "-",  // Kubik placeholder (still missing in DB)
+                item.hargaSatuan ? `Rp ${item.hargaSatuan.toLocaleString('id-ID')}` : "-" // Harga Satuan from DB
+            ]);
+
+            // Calculate Totals
+            const totalCollies = shipments.reduce((sum, item) => sum + item.jumlah, 0);
+            // const totalKubik = ... (if we had the data)
+
+            autoTable(doc, {
+                startY: startY + lineHeight * 7,
+                head: [['NO', 'JUMLAH', 'JENIS BARANG', 'UKURAN', 'KUBIK', 'HARGA SATUAN']],
+                body: tableBody,
+                foot: [['TOTAL', `${totalCollies} Collies`, '', '', '-', '']],
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [255, 255, 255],
+                    textColor: [0, 0, 0],
+                    lineColor: [200, 200, 200],
+                    lineWidth: 0.1,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    textColor: [0, 0, 0],
+                    lineColor: [200, 200, 200],
+                    lineWidth: 0.1,
+                    halign: 'center'
+                },
+                footStyles: {
+                    fillColor: [255, 255, 255],
+                    textColor: [0, 0, 0],
+                    lineColor: [200, 200, 200],
+                    lineWidth: 0.1,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                columnStyles: {
+                    0: { cellWidth: 15 }, // NO
+                    1: { cellWidth: 30 }, // JUMLAH
+                    2: { halign: 'left' }, // JENIS BARANG (auto width)
+                    3: { cellWidth: 25 }, // UKURAN
+                    4: { cellWidth: 20 }, // KUBIK
+                    5: { cellWidth: 35 }, // HARGA SATUAN
+                }
+            });
+        });
+
+        doc.save('packing-list.pdf');
     };
 
     const handleExportExcel = () => {
@@ -85,7 +181,8 @@ export default function LaporanPage() {
             'Tujuan': item.tujuan,
             'Penerima': item.penerima,
             'Pelayaran': item.pelayaran,
-            'Status': item.status,
+            'Harga Satuan': item.hargaSatuan,
+            'Ukuran': item.ukuran || "-",
             'Tanggal': formatDate(item.tanggalPengiriman)
         }));
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -102,13 +199,13 @@ export default function LaporanPage() {
                     new Table({
                         rows: [
                             new TableRow({
-                                children: ["No. Kontainer", "Nama Barang", "Tujuan", "Penerima", "Tanggal"].map(text =>
+                                children: ["No. Kontainer", "Nama Barang", "Tujuan", "Penerima", "Harga Satuan", "Ukuran", "Tanggal"].map(text =>
                                     new TableCell({ children: [new Paragraph(text)] })
                                 )
                             }),
                             ...data.map(item =>
                                 new TableRow({
-                                    children: [item.nomorKontainer, item.namaBarang, item.tujuan, item.penerima, formatDate(item.tanggalPengiriman)].map(text =>
+                                    children: [item.nomorKontainer, item.namaBarang, item.tujuan, item.penerima, item.hargaSatuan ? `Rp ${item.hargaSatuan.toLocaleString('id-ID')}` : "-", item.ukuran || "-", formatDate(item.tanggalPengiriman)].map(text =>
                                         new TableCell({ children: [new Paragraph(text)] })
                                     )
                                 })
@@ -123,14 +220,7 @@ export default function LaporanPage() {
         saveAs(blob, "laporan-pengiriman.docx");
     };
 
-    const getStatusBadge = (status: string) => {
-        const styles = {
-            'Completed': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-            'Active': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-            'Pending': 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-        };
-        return styles[status as keyof typeof styles] || styles.Pending;
-    };
+
 
     return (
         <DashboardLayout>
@@ -191,21 +281,21 @@ export default function LaporanPage() {
                                             <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
                                             <span className="font-mono text-accent font-medium text-lg">{item.nomorKontainer}</span>
                                         </div>
-                                        <div className="scale-90 origin-top-right">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}>
-                                                {item.status === 'Completed' ? 'Selesai' : item.status === 'Active' ? 'In Transit' : item.status}
-                                            </span>
-                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
                                         <div>
                                             <span className="text-xs text-slate-400 block mb-1">Barang</span>
                                             <span className="text-white font-medium block">{item.namaBarang}</span>
+                                            <span className="text-xs text-slate-500">{item.jumlah} {item.satuan} {item.ukuran ? `• ${item.ukuran}` : ''}</span>
                                         </div>
                                         <div>
                                             <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
                                             <span className="text-white font-medium block">{item.tujuan}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-slate-400 block mb-1">Penerima</span>
+                                            <span className="text-white font-medium block">{item.penerima}</span>
                                         </div>
                                     </div>
 
@@ -225,7 +315,9 @@ export default function LaporanPage() {
                                     <th className="px-6 py-4">No. Kontainer</th>
                                     <th className="px-6 py-4">Nama Barang</th>
                                     <th className="px-6 py-4">Tujuan</th>
-                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Penerima</th>
+                                    <th className="px-6 py-4">Harga Satuan</th>
+                                    <th className="px-6 py-4">Ukuran</th>
                                     <th className="px-6 py-4">Tanggal Pengiriman</th>
                                 </tr>
                             </thead>
@@ -242,13 +334,18 @@ export default function LaporanPage() {
                                     data.map((item) => (
                                         <tr key={item.id} className="group hover:bg-white/[0.02] transition-colors">
                                             <td className="px-6 py-4 font-mono text-accent font-medium">{item.nomorKontainer}</td>
-                                            <td className="px-6 py-4 text-white font-medium">{item.namaBarang}</td>
-                                            <td className="px-6 py-4 text-slate-300">{item.tujuan}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}>
-                                                    {item.status === 'Completed' ? 'Selesai' : item.status === 'Active' ? 'In Transit' : item.status}
-                                                </span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-white font-medium">{item.namaBarang}</span>
+                                                    <span className="text-xs text-slate-500">{item.jumlah} {item.satuan}</span>
+                                                </div>
                                             </td>
+                                            <td className="px-6 py-4 text-slate-300">{item.tujuan}</td>
+                                            <td className="px-6 py-4 text-white font-medium">{item.penerima}</td>
+                                            <td className="px-6 py-4 text-emerald-400 font-mono">
+                                                {item.hargaSatuan ? `Rp ${item.hargaSatuan.toLocaleString('id-ID')}` : "-"}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-300">{item.ukuran || "-"}</td>
                                             <td className="px-6 py-4 text-slate-400">{formatDate(item.tanggalPengiriman)}</td>
                                         </tr>
                                     ))

@@ -13,6 +13,8 @@ export const shipmentSchema = z.object({
     penerima: z.string().min(1, 'Penerima wajib dipilih'),
     pelayaran: z.enum(['Spill', 'Tanto'], { message: 'Pelayaran tidak valid' }),
     nomorKontainer: z.string().min(1, 'Nomor kontainer wajib diisi'),
+    ukuran: z.string().optional(),
+    hargaSatuan: z.number().nonnegative('Harga tidak boleh negatif').optional(),
     tanggalPengiriman: z.string().min(1, 'Tanggal pengiriman wajib dipilih'),
 });
 

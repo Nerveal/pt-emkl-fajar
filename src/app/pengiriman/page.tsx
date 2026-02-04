@@ -17,6 +17,8 @@ export default function PengirimanPage() {
         penerima: "",
         pelayaran: "",
         nomorKontainer: "",
+        ukuran: "",
+        hargaSatuan: "",
         tanggalPengiriman: "",
     });
 
@@ -61,6 +63,7 @@ export default function PengirimanPage() {
                 body: JSON.stringify({
                     ...formData,
                     jumlah: parseInt(formData.jumlah) || 0,
+                    hargaSatuan: parseFloat(formData.hargaSatuan) || 0,
                 }),
             });
 
@@ -189,6 +192,26 @@ export default function PengirimanPage() {
                         </div>
 
                         {/* Row 4 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Input
+                                label="Ukuran (Optional)"
+                                name="ukuran"
+                                placeholder="Contoh: 20ft, 40ft"
+                                value={formData.ukuran}
+                                onChange={handleChange}
+                            />
+                            <Input
+                                label="Harga Satuan (Rp)"
+                                name="hargaSatuan"
+                                type="number"
+                                placeholder="0"
+                                value={formData.hargaSatuan}
+                                onChange={handleChange}
+                                startIcon={<span className="font-bold text-sm">Rp</span>}
+                            />
+                        </div>
+
+                        {/* Row 5 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Input
                                 label="Tanggal Pengiriman"

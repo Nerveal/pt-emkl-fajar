@@ -69,6 +69,8 @@ model Shipment {
   penerima          String
   pelayaran         String   // Spill | Tanto
   nomorKontainer    String
+  ukuran            String?  // e.g. "20ft", "40ft"
+  hargaSatuan       Float?   // Unit price
   tanggalPengiriman DateTime
   status            String   @default("Active") // Active | Completed | Pending
   createdAt         DateTime @default(now())

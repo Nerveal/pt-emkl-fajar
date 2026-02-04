@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
                 penerima: data.penerima,
                 pelayaran: data.pelayaran,
                 nomorKontainer: data.nomorKontainer,
+                ukuran: data.ukuran,
+                hargaSatuan: data.hargaSatuan,
                 tanggalPengiriman: new Date(data.tanggalPengiriman),
                 userId: session.user.id,
             },

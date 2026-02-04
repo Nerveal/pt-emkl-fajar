@@ -15,6 +15,8 @@ interface Shipment {
     tanggalPengiriman: string;
     status: string;
     createdAt: string;
+    ukuran?: string;
+    hargaSatuan?: number;
 }
 
 export default function ShipmentTable() {
@@ -72,11 +74,20 @@ export default function ShipmentTable() {
     };
 
     const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('id-ID', {
+        return new Intl.DateTimeFormat('id-ID', {
             day: 'numeric',
             month: 'short',
             year: 'numeric'
-        });
+        }).format(new Date(dateStr));
+    };
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
     };
 
     return (
@@ -139,7 +150,20 @@ export default function ShipmentTable() {
                                 <div>
                                     <span className="text-xs text-slate-400 block mb-1">Barang</span>
                                     <span className="text-white font-medium block">{shipment.namaBarang}</span>
-                                    <span className="text-xs text-slate-500">{shipment.jumlah} {shipment.satuan}</span>
+                                    <div className="flex gap-2 text-xs text-slate-500">
+                                        <span>{shipment.jumlah} {shipment.satuan}</span>
+                                        {shipment.ukuran && (
+                                            <>
+                                                <span>•</span>
+                                                <span>{shipment.ukuran}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    {shipment.hargaSatuan && (
+                                        <span className="text-xs text-emerald-500 block mt-1">
+                                            {formatCurrency(shipment.hargaSatuan)}
+                                        </span>
+                                    )}
                                 </div>
                                 <div>
                                     <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
@@ -163,6 +187,8 @@ export default function ShipmentTable() {
                         <tr className="bg-white/5 border-b border-white/5 text-xs uppercase tracking-wider text-slate-400 font-semibold">
                             <th className="px-6 py-4">No. Kontainer</th>
                             <th className="px-6 py-4">Nama Barang</th>
+                            <th className="px-6 py-4">Ukuran</th>
+                            <th className="px-6 py-4">Harga Satuan</th>
                             <th className="px-6 py-4">Tujuan</th>
                             <th className="px-6 py-4">Penerima</th>
                             <th className="px-6 py-4">Tanggal Kirim</th>
@@ -171,13 +197,13 @@ export default function ShipmentTable() {
                     <tbody className="divide-y divide-white/5 text-sm">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                                <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
                                     Memuat data...
                                 </td>
                             </tr>
                         ) : filteredShipments.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                                <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
                                     Belum ada data pengiriman
                                 </td>
                             </tr>
@@ -192,6 +218,12 @@ export default function ShipmentTable() {
                                             <span className="text-white font-medium">{shipment.namaBarang}</span>
                                             <span className="text-xs text-slate-500">{shipment.jumlah} {shipment.satuan}</span>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-300">
+                                        {shipment.ukuran || "-"}
+                                    </td>
+                                    <td className="px-6 py-4 text-emerald-400 font-mono text-sm">
+                                        {shipment.hargaSatuan ? formatCurrency(shipment.hargaSatuan) : "-"}
                                     </td>
                                     <td className="px-6 py-4 text-slate-300">
                                         <span>{shipment.tujuan}</span>
