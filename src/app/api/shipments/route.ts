@@ -15,7 +15,13 @@ export async function GET(request: NextRequest) {
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
         const status = searchParams.get('status');
-        const limit = searchParams.get('limit');
+
+        // Pagination & Search params
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '10');
+        const search = searchParams.get('q') || '';
+
+        const skip = (page - 1) * limit;
 
         // Build where clause
         const where: Record<string, unknown> = {};
@@ -31,18 +37,41 @@ export async function GET(request: NextRequest) {
             where.status = status;
         }
 
-        const shipments = await prisma.shipment.findMany({
-            where,
-            orderBy: { createdAt: 'desc' },
-            take: limit ? parseInt(limit) : undefined,
-            include: {
-                user: {
-                    select: { name: true },
-                },
-            },
-        });
+        // Search logic
+        if (search) {
+            where.OR = [
+                { namaBarang: { contains: search, mode: 'insensitive' } },
+                { nomorKontainer: { contains: search, mode: 'insensitive' } },
+                { penerima: { contains: search, mode: 'insensitive' } },
+                { tujuan: { contains: search, mode: 'insensitive' } },
+            ];
+        }
 
-        return NextResponse.json({ shipments });
+        // Execute transactions in parallel
+        const [shipments, total] = await Promise.all([
+            prisma.shipment.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip: skip,
+                include: {
+                    user: {
+                        select: { name: true },
+                    },
+                },
+            }),
+            prisma.shipment.count({ where }),
+        ]);
+
+        return NextResponse.json({
+            shipments,
+            pagination: {
+                total,
+                pages: Math.ceil(total / limit),
+                page,
+                limit
+            }
+        });
     } catch (error) {
         console.error('Get shipments error:', error);
         return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });

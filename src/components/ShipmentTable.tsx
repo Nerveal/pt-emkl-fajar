@@ -24,16 +24,42 @@ export default function ShipmentTable() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
-    useEffect(() => {
-        fetchShipments();
-    }, []);
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
-    const fetchShipments = async () => {
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setCurrentPage(1); // Reset to page 1 on search
+            fetchShipments(1, searchQuery);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
+
+    // Fetch on page change (skip if caused by search reset)
+    useEffect(() => {
+        fetchShipments(currentPage, searchQuery);
+    }, [currentPage]);
+
+    const fetchShipments = async (page: number, query: string) => {
+        setIsLoading(true);
         try {
-            const res = await fetch('/api/shipments?limit=10');
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: '10',
+                q: query
+            });
+
+            const res = await fetch(`/api/shipments?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
                 setShipments(data.shipments || []);
+                if (data.pagination) {
+                    setTotalPages(data.pagination.pages);
+                    setTotalItems(data.pagination.total);
+                }
             }
         } catch (err) {
             console.error('Failed to fetch shipments:', err);
@@ -41,12 +67,6 @@ export default function ShipmentTable() {
             setIsLoading(false);
         }
     };
-
-    const filteredShipments = shipments.filter(s =>
-        s.namaBarang.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.nomorKontainer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.penerima.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -130,10 +150,12 @@ export default function ShipmentTable() {
             <div className="grid grid-cols-1 gap-4 md:hidden">
                 {isLoading ? (
                     <div className="text-center text-slate-400 py-8">Memuat data...</div>
-                ) : filteredShipments.length === 0 ? (
-                    <div className="text-center text-slate-400 py-8">Belum ada data pengiriman</div>
+                ) : shipments.length === 0 ? (
+                    <div className="text-center text-slate-400 py-8">
+                        {searchQuery ? "Data tidak ditemukan" : "Belum ada data pengiriman"}
+                    </div>
                 ) : (
-                    filteredShipments.map((shipment) => (
+                    shipments.map((shipment) => (
                         <div key={shipment.id} className="relative glass-panel p-4 rounded-xl border border-white/5 space-y-3 group hover:bg-white/[0.03] transition-all">
                             <div className="flex justify-between items-start">
                                 <div className="flex flex-col">
@@ -201,14 +223,14 @@ export default function ShipmentTable() {
                                     Memuat data...
                                 </td>
                             </tr>
-                        ) : filteredShipments.length === 0 ? (
+                        ) : shipments.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
-                                    Belum ada data pengiriman
+                                    {searchQuery ? "Data tidak ditemukan" : "Belum ada data pengiriman"}
                                 </td>
                             </tr>
                         ) : (
-                            filteredShipments.map((shipment) => (
+                            shipments.map((shipment) => (
                                 <tr key={shipment.id} className="group hover:bg-white/[0.02] transition-colors">
                                     <td className="px-6 py-4 font-mono text-accent font-medium">
                                         {shipment.nomorKontainer}
@@ -239,9 +261,39 @@ export default function ShipmentTable() {
                 </table>
             </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                <p className="text-xs text-slate-500">Menampilkan {filteredShipments.length} data</p>
+            {/* Pagination & Summary */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/5">
+                <p className="text-xs text-slate-500">
+                    Menampilkan <span className="text-slate-300 font-medium">{shipments.length}</span> dari <span className="text-slate-300 font-medium">{totalItems}</span> data
+                </p>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1 || isLoading}
+                        className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        <span className="px-3 py-1 rounded-lg bg-white/5 text-sm text-white font-medium min-w-[32px] text-center">
+                            {currentPage}
+                        </span>
+                        <span className="text-slate-500 text-sm">/</span>
+                        <span className="px-2 py-1 text-sm text-slate-500">
+                            {totalPages}
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages || isLoading}
+                        className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                    </button>
+                </div>
             </div>
         </section>
     );
