@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface Shipment {
     id: string;
@@ -60,9 +61,12 @@ export default function ShipmentTable() {
                     setTotalPages(data.pagination.pages);
                     setTotalItems(data.pagination.total);
                 }
+            } else {
+                toast.error("Gagal memuat data pengiriman");
             }
         } catch (err) {
             console.error('Failed to fetch shipments:', err);
+            toast.error("Terjadi kesalahan koneksi");
         } finally {
             setIsLoading(false);
         }
