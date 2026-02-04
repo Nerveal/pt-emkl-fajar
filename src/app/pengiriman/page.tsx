@@ -72,7 +72,14 @@ export default function PengirimanPage() {
             if (res.ok && data.success) {
                 router.push("/dashboard");
             } else {
-                setError(data.error || 'Gagal menyimpan pengiriman');
+                console.error("Submission failed:", data);
+                // Handle Zod validation errors structure
+                if (data.details && typeof data.details === 'object' && data.details.fieldErrors) {
+                    const fieldErrors = Object.values(data.details.fieldErrors).flat();
+                    setError(fieldErrors.length > 0 ? String(fieldErrors[0]) : (data.error || 'Gagal menyimpan pengiriman'));
+                } else {
+                    setError(data.error || 'Gagal menyimpan pengiriman');
+                }
             }
         } catch (err) {
             console.error('Submit error:', err);
@@ -91,6 +98,12 @@ export default function PengirimanPage() {
                 </div>
 
                 <div className="glass-panel p-8 rounded-2xl border border-white/5">
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm flex items-center gap-2">
+                            <span className="material-symbols-outlined text-lg">error</span>
+                            {error}
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         {/* Row 1 */}

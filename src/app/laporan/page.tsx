@@ -69,108 +69,69 @@ export default function LaporanPage() {
     const handleExportPDF = () => {
         const doc = new jsPDF();
 
-        // Group data by Container Number
-        const groupedData: { [key: string]: Shipment[] } = {};
-        data.forEach(item => {
-            if (!groupedData[item.nomorKontainer]) {
-                groupedData[item.nomorKontainer] = [];
-            }
-            groupedData[item.nomorKontainer].push(item);
-        });
+        // --- TITLE ---
+        doc.setFontSize(18);
+        doc.setTextColor(41, 128, 185);
+        doc.text("LAPORAN PENGIRIMAN", 14, 20);
 
-        const containers = Object.keys(groupedData);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("PT. EMKL FAJAR INDONESIA TIMUR", 14, 26);
 
-        containers.forEach((containerNum, index) => {
-            if (index > 0) {
-                doc.addPage();
-            }
-
-            const shipments = groupedData[containerNum];
-            const firstItem = shipments[0]; // Use first item for shared metadata
-
-            // --- HEADER ---
-            doc.setFontSize(16);
-            doc.setTextColor(41, 128, 185); // Blue color for title
-            doc.text("PACKING LIST", 195, 20, { align: "right" });
-
-            // --- METADATA BLOCK ---
+        // --- DATE INFO ---
+        if (filterDateStart && filterDateEnd) {
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0); // Black text
+            doc.setTextColor(0);
+            doc.text(`Periode: ${formatDate(filterDateStart)} - ${formatDate(filterDateEnd)}`, 14, 34);
+        }
 
-            const startY = 30;
-            const lineHeight = 6;
-            const labelX = 14;
-            const valueX = 60;
+        // --- TABLE ---
+        const tableBody = data.map((item, idx) => [
+            idx + 1,
+            item.nomorKontainer,
+            item.namaBarang,
+            `${item.jumlah} ${item.satuan}`,
+            item.tujuan,
+            item.penerima,
+            item.ukuran || "-",
+            item.hargaSatuan ? `Rp ${item.hargaSatuan.toLocaleString('id-ID')}` : "-",
+            formatDate(item.tanggalPengiriman)
+        ]);
 
-            // Helper to draw label-value pair
-            const drawField = (label: string, value: string, y: number) => {
-                doc.setFont("helvetica", "bold");
-                doc.text(label, labelX, y);
-                doc.setFont("helvetica", "normal");
-                doc.text(value, valueX, y);
-            };
-
-            drawField("PENGIRIM:", "PT. EMKL FAJAR INDONESIA TIMUR", startY);
-            drawField("PENERIMA:", firstItem.penerima, startY + lineHeight);
-            drawField("KAPAL / TUJUAN:", `${firstItem.pelayaran} / ${firstItem.tujuan}`, startY + lineHeight * 2);
-            drawField("MERK:", "FNB", startY + lineHeight * 3); // Hardcoded based on image/request or "-"
-            drawField("RENCANA KIRIM:", formatDate(firstItem.tanggalPengiriman), startY + lineHeight * 4);
-            drawField("KONTAINER:", containerNum, startY + lineHeight * 5);
-
-            // --- TABLE ---
-            const tableBody = shipments.map((item, idx) => [
-                idx + 1,
-                `${item.jumlah} ${item.satuan}`,
-                item.namaBarang,
-                item.ukuran || "-", // Ukuran from DB
-                "-",  // Kubik placeholder (still missing in DB)
-                item.hargaSatuan ? `Rp ${item.hargaSatuan.toLocaleString('id-ID')}` : "-" // Harga Satuan from DB
-            ]);
-
-            // Calculate Totals
-            const totalCollies = shipments.reduce((sum, item) => sum + item.jumlah, 0);
-            // const totalKubik = ... (if we had the data)
-
-            autoTable(doc, {
-                startY: startY + lineHeight * 7,
-                head: [['NO', 'JUMLAH', 'JENIS BARANG', 'UKURAN', 'KUBIK', 'HARGA SATUAN']],
-                body: tableBody,
-                foot: [['TOTAL', `${totalCollies} Collies`, '', '', '-', '']],
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [255, 255, 255],
-                    textColor: [0, 0, 0],
-                    lineColor: [200, 200, 200],
-                    lineWidth: 0.1,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                bodyStyles: {
-                    textColor: [0, 0, 0],
-                    lineColor: [200, 200, 200],
-                    lineWidth: 0.1,
-                    halign: 'center'
-                },
-                footStyles: {
-                    fillColor: [255, 255, 255],
-                    textColor: [0, 0, 0],
-                    lineColor: [200, 200, 200],
-                    lineWidth: 0.1,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                columnStyles: {
-                    0: { cellWidth: 15 }, // NO
-                    1: { cellWidth: 30 }, // JUMLAH
-                    2: { halign: 'left' }, // JENIS BARANG (auto width)
-                    3: { cellWidth: 25 }, // UKURAN
-                    4: { cellWidth: 20 }, // KUBIK
-                    5: { cellWidth: 35 }, // HARGA SATUAN
-                }
-            });
+        autoTable(doc, {
+            startY: filterDateStart && filterDateEnd ? 40 : 35,
+            head: [['No', 'No. Kontainer', 'Nama Barang', 'Jumlah', 'Tujuan', 'Penerima', 'Ukuran', 'Harga Satuan', 'Tanggal']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [41, 128, 185],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                halign: 'center',
+                fontSize: 8
+            },
+            bodyStyles: {
+                fontSize: 8,
+                textColor: [50, 50, 50]
+            },
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' }, // No
+                1: { cellWidth: 25 }, // No. Kontainer
+                2: { cellWidth: 25 }, // Nama Barang
+                3: { cellWidth: 20 }, // Jumlah
+                4: { cellWidth: 20 }, // Tujuan
+                5: { cellWidth: 25 }, // Penerima
+                6: { cellWidth: 15, halign: 'center' }, // Ukuran
+                7: { cellWidth: 25, halign: 'right' }, // Harga Satuan
+                8: { cellWidth: 20, halign: 'center' } // Tanggal
+            },
+            styles: {
+                overflow: 'linebreak',
+                cellPadding: 2
+            }
         });
 
-        doc.save('packing-list.pdf');
+        doc.save('laporan-pengiriman.pdf');
     };
 
     const handleExportExcel = () => {
