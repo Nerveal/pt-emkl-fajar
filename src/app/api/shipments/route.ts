@@ -115,6 +115,14 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        // Create notification
+        await prisma.notification.create({
+            data: {
+                title: 'Pengiriman Baru',
+                message: `Pengiriman baru ${data.nomorKontainer} (${data.namaBarang}) telah dibuat oleh ${session.user.name || 'User'}.`,
+            }
+        });
+
         return NextResponse.json({ success: true, shipment }, { status: 201 });
     } catch (error) {
         console.error('Create shipment error:', error);

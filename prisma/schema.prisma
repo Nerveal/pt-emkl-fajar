@@ -50,6 +50,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   shipments     Shipment[]
+  notifications Notification[]
 }
 
 model VerificationToken {
@@ -77,4 +78,14 @@ model Shipment {
   updatedAt         DateTime @updatedAt
   userId            String
   user              User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String?  // Optional: Global notification if null, specific if set
+  user      User?    @relation(fields: [userId], references: [id])
 }
