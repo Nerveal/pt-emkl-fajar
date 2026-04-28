@@ -63,21 +63,51 @@ model VerificationToken {
 
 model Shipment {
   id                String   @id @default(cuid())
-  namaBarang        String
-  jumlah            Int
-  satuan            String
-  tujuan            String   // Merauke | Sorong
-  penerima          String
-  pelayaran         String   // Spill | Tanto
-  nomorKontainer    String
+  // Header Info
+  namaKapal         String?
+  etd               String?
+  merk              String?
+  
+  // Legacy fields (kept optional for backward compatibility or direct single-item use if needed)
+  namaBarang        String?
+  jumlah            Int?
+  satuan            String?
   ukuran            String?  // e.g. "20ft", "40ft"
   hargaSatuan       Float?   // Unit price
+
+  tujuan            String   // Merauke | Sorong
+  penerima          String
+  // pelayaran         String   // Spill | Tanto - DEPRECATED or keep if still used? 
+  // Let's keep pelayaran as it might be useful, but maybe namaKapal replaces generic pelayaran?
+  // The screenshot shows "Nama Kapal (Vessel)" input.
+  // The existing schema had "pelayaran" which was "Spill" or "Tanto".
+  // I'll keep "pelayaran" for now as it's required in the old form, but make it optional if we want to rely on the new form 
+  // OR the user might want to select the shipping line AND the vessel name.
+  // However, looking at the UI, "Nama Kapal" is a text input. I'll make 'pelayaran' optional to avoid validation errors if the new form doesn't send it.
+  pelayaran         String?   
+
+  nomorKontainer    String
+  
   tanggalPengiriman DateTime
   status            String   @default("Active") // Active | Completed | Pending
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   userId            String
   user              User     @relation(fields: [userId], references: [id])
+  
+  items             ShipmentItem[]
+}
+
+model ShipmentItem {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  
+  jumlah      Int
+  satuan      String
+  namaBarang  String
+  ukuran      String?
+  kubik       Float?
 }
 
 model Notification {

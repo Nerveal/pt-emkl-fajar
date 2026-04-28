@@ -4,20 +4,38 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-interface Shipment {
+interface ShipmentItem {
     id: string;
     namaBarang: string;
     jumlah: number;
     satuan: string;
+    ukuran?: string;
+    kubik?: number;
+}
+
+interface Shipment {
+    id: string;
+    // Header
+    namaKapal?: string;
+    etd?: string;
+    merk?: string;
     tujuan: string;
     penerima: string;
-    pelayaran: string;
     nomorKontainer: string;
     tanggalPengiriman: string;
     status: string;
     createdAt: string;
+
+    // Items
+    items?: ShipmentItem[];
+
+    // Legacy / Fallback
+    namaBarang?: string;
+    jumlah?: number;
+    satuan?: string;
     ukuran?: string;
     hargaSatuan?: number;
+    pelayaran?: string;
 }
 
 export default function ShipmentTable() {
@@ -69,31 +87,6 @@ export default function ShipmentTable() {
             toast.error("Terjadi kesalahan koneksi");
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Completed':
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                        <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>check</span>
-                        Selesai
-                    </span>
-                );
-            case 'Active':
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
-                        <span className="size-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-                        In Transit
-                    </span>
-                );
-            default:
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                        Pending
-                    </span>
-                );
         }
     };
 
@@ -159,50 +152,72 @@ export default function ShipmentTable() {
                         {searchQuery ? "Data tidak ditemukan" : "Belum ada data pengiriman"}
                     </div>
                 ) : (
-                    shipments.map((shipment) => (
-                        <div key={shipment.id} className="relative glass-panel p-4 rounded-xl border border-white/5 space-y-3 group hover:bg-white/[0.03] transition-all">
-                            <div className="flex justify-between items-start">
-                                <div className="flex flex-col">
-                                    <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
-                                    <span className="font-mono text-accent font-medium text-lg">{shipment.nomorKontainer}</span>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-xs text-slate-400 uppercase tracking-wide">Penerima</span>
-                                    <span className="text-white font-medium text-right">{shipment.penerima}</span>
-                                </div>
-                            </div>
+                    shipments.map((shipment) => {
+                        // Display Logic: Use first item or fallback to legacy
+                        const hasItems = shipment.items && shipment.items.length > 0;
+                        const firstItem = hasItems ? shipment.items![0] : shipment;
+                        const itemCount = hasItems ? shipment.items!.length : 1;
 
-                            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
-                                <div>
-                                    <span className="text-xs text-slate-400 block mb-1">Barang</span>
-                                    <span className="text-white font-medium block">{shipment.namaBarang}</span>
-                                    <div className="flex gap-2 text-xs text-slate-500">
-                                        <span>{shipment.jumlah} {shipment.satuan}</span>
-                                        {shipment.ukuran && (
-                                            <>
-                                                <span>•</span>
-                                                <span>{shipment.ukuran}</span>
-                                            </>
+                        const displayNamaBarang = firstItem.namaBarang || "-";
+                        const displayJumlah = firstItem.jumlah || 0;
+                        const displaySatuan = firstItem.satuan || "";
+                        const displayUkuran = firstItem.ukuran || shipment.ukuran || "-";
+
+                        return (
+                            <div key={shipment.id} className="relative glass-panel p-4 rounded-xl border border-white/5 space-y-3 group hover:bg-white/[0.03] transition-all">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-slate-400 uppercase tracking-wide">No. Kontainer</span>
+                                        <span className="font-mono text-accent font-medium text-lg">{shipment.nomorKontainer}</span>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-xs text-slate-400 uppercase tracking-wide">Penerima</span>
+                                        <span className="text-white font-medium text-right">{shipment.penerima}</span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                                    <div>
+                                        <span className="text-xs text-slate-400 block mb-1">Barang</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-white font-medium block">{displayNamaBarang}</span>
+                                            {itemCount > 1 && (
+                                                <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-slate-300">
+                                                    +{itemCount - 1}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2 text-xs text-slate-500">
+                                            <span>{displayJumlah} {displaySatuan}</span>
+                                            {displayUkuran !== "-" && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>{displayUkuran}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        {shipment.hargaSatuan && (
+                                            <span className="text-xs text-emerald-500 block mt-1">
+                                                {formatCurrency(shipment.hargaSatuan)}
+                                            </span>
                                         )}
                                     </div>
-                                    {shipment.hargaSatuan && (
-                                        <span className="text-xs text-emerald-500 block mt-1">
-                                            {formatCurrency(shipment.hargaSatuan)}
-                                        </span>
-                                    )}
+                                    <div>
+                                        <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
+                                        <span className="text-white font-medium block">{shipment.tujuan}</span>
+                                        {shipment.namaKapal && (
+                                            <span className="text-xs text-slate-500 block mt-1">{shipment.namaKapal}</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <span className="text-xs text-slate-400 block mb-1">Tujuan</span>
-                                    <span className="text-white font-medium block">{shipment.tujuan}</span>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center justify-between pt-2">
-                                <span className="text-xs text-slate-500">{formatDate(shipment.tanggalPengiriman)}</span>
-                                <span className="material-symbols-outlined text-slate-600">chevron_right</span>
+                                <div className="flex items-center justify-between pt-2">
+                                    <span className="text-xs text-slate-500">{formatDate(shipment.tanggalPengiriman)}</span>
+                                    <span className="material-symbols-outlined text-slate-600">chevron_right</span>
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
@@ -214,7 +229,7 @@ export default function ShipmentTable() {
                             <th className="px-6 py-4">No. Kontainer</th>
                             <th className="px-6 py-4">Nama Barang</th>
                             <th className="px-6 py-4">Ukuran</th>
-                            <th className="px-6 py-4">Harga Satuan</th>
+                            <th className="px-6 py-4">Kapal / Pelayaran</th>
                             <th className="px-6 py-4">Tujuan</th>
                             <th className="px-6 py-4">Penerima</th>
                             <th className="px-6 py-4">Tanggal Kirim</th>
@@ -234,32 +249,52 @@ export default function ShipmentTable() {
                                 </td>
                             </tr>
                         ) : (
-                            shipments.map((shipment) => (
-                                <tr key={shipment.id} className="group hover:bg-white/[0.02] transition-colors">
-                                    <td className="px-6 py-4 font-mono text-accent font-medium">
-                                        {shipment.nomorKontainer}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-white font-medium">{shipment.namaBarang}</span>
-                                            <span className="text-xs text-slate-500">{shipment.jumlah} {shipment.satuan}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-300">
-                                        {shipment.ukuran || "-"}
-                                    </td>
-                                    <td className="px-6 py-4 text-emerald-400 font-mono text-sm">
-                                        {shipment.hargaSatuan ? formatCurrency(shipment.hargaSatuan) : "-"}
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-300">
-                                        <span>{shipment.tujuan}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-white font-medium">
-                                        {shipment.penerima}
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-400">{formatDate(shipment.tanggalPengiriman)}</td>
-                                </tr>
-                            ))
+                            shipments.map((shipment) => {
+                                // Display Logic
+                                const hasItems = shipment.items && shipment.items.length > 0;
+                                const firstItem = hasItems ? shipment.items![0] : shipment;
+                                const itemCount = hasItems ? shipment.items!.length : 1;
+
+                                const displayNamaBarang = firstItem.namaBarang || "-";
+                                const displayJumlah = firstItem.jumlah || 0;
+                                const displaySatuan = firstItem.satuan || "";
+                                const displayUkuran = firstItem.ukuran || shipment.ukuran || "-";
+                                const displayKapal = shipment.namaKapal || shipment.pelayaran || "-";
+
+                                return (
+                                    <tr key={shipment.id} className="group hover:bg-white/[0.02] transition-colors">
+                                        <td className="px-6 py-4 font-mono text-accent font-medium">
+                                            {shipment.nomorKontainer}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-white font-medium">{displayNamaBarang}</span>
+                                                    {itemCount > 1 && (
+                                                        <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-slate-300">
+                                                            +{itemCount - 1}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-xs text-slate-500">{displayJumlah} {displaySatuan}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-300">
+                                            {displayUkuran}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-300">
+                                            {displayKapal}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-300">
+                                            <span>{shipment.tujuan}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-white font-medium">
+                                            {shipment.penerima}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-400">{formatDate(shipment.tanggalPengiriman)}</td>
+                                    </tr>
+                                )
+                            })
                         )}
                     </tbody>
                 </table>
